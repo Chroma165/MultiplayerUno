@@ -4,8 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>UNO</h1>
+    <div id="selectRoom">
+        <button id="createRoom">Create Room</button>
+        <input type="text" placeholder="Enter room code" id="roomCodeInput">
+        <button id="joinRoom">Join Room</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="home.js"></script>
 </body>
 </html>
