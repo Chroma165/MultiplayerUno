@@ -1,7 +1,7 @@
 const socket = io();
 
-const user = JSON.parse(localStorage.getItem('user'));
-const roomCode = localStorage.getItem('roomCode');
+const user = JSON.parse(sessionStorage.getItem('user'));
+const roomCode = sessionStorage.getItem('roomCode');
 const rulesContainer = document.querySelector('#rulesContainer');
 
 let room;
@@ -13,6 +13,7 @@ socket.emit('getRoomInfo', roomCode, (r) => {
     }
     renderPlayerList(r.players);
     room = r;
+    document.querySelector('#lobbyCode').innerHTML = room.code;
     // Only host can edit
     const isHost = user && user.type === 'host';
     renderRules(r.rules, isHost);

@@ -5,8 +5,8 @@ const joinRoom = document.querySelector('#joinRoom');
 const roomCodeInput = document.querySelector('#roomCodeInput');
 const userNameInput = document.querySelector('#userNameInput');
 
-if (JSON.parse(localStorage.getItem('user'))){
-    userNameInput.value = JSON.parse(localStorage.getItem('user')).userName;
+if (JSON.parse(sessionStorage.getItem('user'))){
+    userNameInput.value = JSON.parse(sessionStorage.getItem('user')).userName;
 }
 
 let user;
@@ -20,7 +20,7 @@ createRoom.addEventListener('click', () => {
             userName : userNameInput.value,
             type : 'host',
         }
-        localStorage.setItem('user', JSON.stringify(user));
+        sessionStorage.setItem('user', JSON.stringify(user));
         socket.emit('createRoom', user);
     }
     else {
@@ -43,13 +43,13 @@ joinRoom.addEventListener('click', () => {
             userName : userNameInput.value,
             type : 'player',
         }
-        localStorage.setItem('user', JSON.stringify(user));
+        sessionStorage.setItem('user', JSON.stringify(user));
         socket.emit('joinRoom', user, roomCodeInput.value.toUpperCase());
     }
 });
 
 socket.on('moveToRoom', (room) => {
-    localStorage.setItem('roomCode', room.code);
+    sessionStorage.setItem('roomCode', room.code);
     window.location.href = `lobby?room=${room.code}`;
 });
 
