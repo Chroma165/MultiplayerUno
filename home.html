@@ -7,11 +7,16 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>UNO</h1>
+    <h1>Play UNO online</h1>
     <div id="selectRoom">
-        <button id="createRoom">Create Room</button>
-        <input type="text" placeholder="Enter room code" id="roomCodeInput">
-        <button id="joinRoom">Join Room</button>
+        <div id="roomForm">
+            <input type="text" id="userNameInput" placeholder="Enter Username" maxlength="16"><br>
+            <div id="roomInputs">
+                <button id="createRoom">Create Room</button>
+                <input type="text" placeholder="Enter room code" id="roomCodeInput">
+                <button id="joinRoom">Join Room</button>
+            </div>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>

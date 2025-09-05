@@ -1,4 +1,5 @@
 body {
+    text-align: center;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     color: #ffffff;
     background-color: #181818;
@@ -8,8 +9,81 @@ body {
     background-color: #1f1f1f;
     margin: 10px;
     padding: 10px;
+    height: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#roomForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 400px;
+}
+
+#userNameInput,
+#roomInputs {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#roomInputs {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    gap: 10px;
+}
+
+input {
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #23272f;
+    color: #fff;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    transition: box-shadow 0.2s, background 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+input:focus {
+    outline: none;
+    background: #2c313a;
+    box-shadow: 0 0 0 2px #4f8cff;
+}
+
+#roomInputs {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    gap: 10px;
+    width: 100%;
 }
 
 button {
-    background-color: #bebebe;
+    background: linear-gradient(90deg, #4f8cff 0%, #2355e6 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background 0.2s, transform 0.1s;
+    min-width: 100px;
+    height: 48px; /* Match input height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+button:hover, button:focus {
+    background: linear-gradient(90deg, #2355e6 0%, #4f8cff 100%);
+    transform: translateY(-2px) scale(1.03);
+    outline: none;
 }
