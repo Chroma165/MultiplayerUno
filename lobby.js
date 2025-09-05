@@ -1,0 +1,108 @@
+const socket = io();
+
+const user = JSON.parse(localStorage.getItem('user'));
+const roomCode = localStorage.getItem('roomCode');
+const rulesContainer = document.querySelector('#rulesContainer');
+
+let room;
+
+socket.emit('getRoomInfo', roomCode, (r) => {
+    if (!r) {
+        window.location.href = 'error.html';
+        return;
+    }
+    renderPlayerList(r.players);
+    room = r;
+    // Only host can edit
+    const isHost = user && user.type === 'host';
+    renderRules(r.rules, isHost);
+});
+
+socket.emit('joinSocketRoom', roomCode);
+
+function renderPlayerList(players) {
+    const playerList = document.querySelector('#playerList');
+    playerList.innerHTML = '';
+    players.forEach(player => {
+        const li = document.createElement('li');
+        li.textContent = (player.userName || player) + ` (${player.type})`;
+        playerList.appendChild(li);
+    });
+}
+
+function renderRules(rules, editable) {
+    rulesContainer.innerHTML = '';
+    const form = document.createElement('form');
+    form.id = 'rulesForm';
+
+    Object.entries(rules).forEach(([key, value]) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'rule-row';
+
+        const label = document.createElement('label');
+        label.className = 'switch';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = value;
+        checkbox.disabled = !editable;
+        checkbox.dataset.rule = key;
+
+        const slider = document.createElement('span');
+        slider.className = 'slider';
+
+        label.appendChild(checkbox);
+        label.appendChild(slider);
+
+        const desc = document.createElement('span');
+        desc.className = 'rule-desc';
+        desc.textContent = ruleDescriptions[key] || key;
+
+        wrapper.appendChild(desc);
+        wrapper.appendChild(label);
+        form.appendChild(wrapper);
+    });
+
+    if (editable) {
+        const saveBtn = document.createElement('button');
+        saveBtn.type = 'button';
+        saveBtn.textContent = 'Save Rules';
+        saveBtn.className = 'save-rules-btn';
+        saveBtn.onclick = () => {
+            // Gather new rules
+            const newRules = {};
+            form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                newRules[cb.dataset.rule] = cb.checked;
+            });
+            socket.emit('updateRules', room.code, newRules);
+        };
+        form.appendChild(saveBtn);
+    }
+
+    rulesContainer.appendChild(form);
+}
+
+// Add human-readable descriptions for each rule
+const ruleDescriptions = {
+    blackOnBlack: 'Allow black on black',
+    d2ond2: 'Allow +2 on +2',
+    d4ond4: 'Allow +4 on +4',
+    d2ond4: 'Allow +2 on +4',
+    d4ond2: 'Allow +4 on +2',
+    throwInBetween: 'Allow throw-in between',
+    playDouble: 'Allow playing doubles',
+    countDouble: 'Count both cards when playing doubles',
+    playAfterDraw: 'Allow playing after drawing',
+};
+
+socket.on('rulesUpdated', (rules) => {
+    if (room) room.rules = rules;
+    // Only host can edit
+    const isHost = user && user.type === 'host';
+    renderRules(rules, isHost);
+});
+
+socket.on('newPlayer', (user) => {
+    room.players.push(user);
+    renderPlayerList(room.players);
+});

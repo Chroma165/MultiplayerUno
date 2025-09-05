@@ -5,6 +5,10 @@ const joinRoom = document.querySelector('#joinRoom');
 const roomCodeInput = document.querySelector('#roomCodeInput');
 const userNameInput = document.querySelector('#userNameInput');
 
+if (JSON.parse(localStorage.getItem('user'))){
+    userNameInput.value = JSON.parse(localStorage.getItem('user')).userName;
+}
+
 let user;
 
 createRoom.addEventListener('click', () => {
@@ -15,8 +19,8 @@ createRoom.addEventListener('click', () => {
         user = {
             userName : userNameInput.value,
             type : 'host',
-            room : null,
         }
+        localStorage.setItem('user', JSON.stringify(user));
         socket.emit('createRoom', user);
     }
     else {
@@ -24,8 +28,35 @@ createRoom.addEventListener('click', () => {
     }
 });
 
-socket.on('joinRoom', (room) => {
-    user.room = room;
+joinRoom.addEventListener('click', () => {
+    if (userNameInput.value.charAt(0) == ' ') {
+        alert("Username can't start with a space");
+    }
+    else if (!userNameInput.value) {
+        alert("Enter username");
+    }
+    else if (!roomCodeInput.value) {
+        alert("Enter roomcode");
+    }
+    else {
+        user = {
+            userName : userNameInput.value,
+            type : 'player',
+        }
+        localStorage.setItem('user', JSON.stringify(user));
+        socket.emit('joinRoom', user, roomCodeInput.value.toUpperCase());
+    }
+});
+
+socket.on('moveToRoom', (room) => {
+    localStorage.setItem('roomCode', room.code);
     window.location.href = `lobby?room=${room.code}`;
-    console.log(room);
+});
+
+socket.on('roomFull', () => {
+    alert("This room is full");
+});
+
+socket.on('roomNotFound', () => {
+    alert("This room doesn't exist");
 });

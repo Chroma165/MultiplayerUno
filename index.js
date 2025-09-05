@@ -38,14 +38,46 @@ io.on('connection', (socket) => {
 
 
     socket.on('createRoom', (user) => {
+        console.log('creating Room');
         const room = generateRoom(user, roomCodeLength);
         users.push(user);
         rooms.push(room);
-        console.log(user + ' joined ' + room);
-
-        socket.emit('joinRoom', room);
-        
+        socket.join(room.code);
+        socket.emit('moveToRoom', { code: room.code });
     });
+
+    socket.on('joinRoom', (user, roomCode) => {
+        const room = rooms.find(r => r.code === roomCode);
+        if (!room) {
+            socket.emit('roomNotFound');
+        } else if (room.players.length >= room.maxPlayers) {
+            socket.emit('roomFull');
+        } else {
+            room.players.push(user);
+            users.push(user);
+            socket.emit('moveToRoom', { code: room.code });
+            io.to(room.code).emit('newPlayer', user);
+        }
+    });
+
+    socket.on('joinSocketRoom', (roomCode) => {
+        socket.join(roomCode);
+    });
+
+    socket.on('getRoomInfo', (roomCode, callback) => {
+        const room = rooms.find(r => r.code === roomCode);
+        callback(room);
+    });
+
+    socket.on('updateRules', (roomCode, newRules) => {
+        const room = rooms.find(r => r.code === roomCode);
+        if (room) {
+            room.rules = { ...room.rules, ...newRules };
+            // Optionally, broadcast updated rules to all clients in the room
+            io.to(roomCode).emit('rulesUpdated', room.rules);
+        }
+    });
+    
 });
 
 function generateRoom(host, codeLength) {
@@ -69,7 +101,7 @@ function generateRoom(host, codeLength) {
     return room;
 }
 
-function generateRoomCode(length){
+function generateRoomCode(length) {
     let code;
     let tries = 0;
     do {

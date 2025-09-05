@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>lobby</h1>
+    <h1>Lobby</h1>
+
+    <div id="lobbyContent">
+        <div id="playerListContainer">
+            <h2>Players</h2>
+            <ul id="playerList"></ul>
+        </div>
+        <div id="rulesContainer"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="lobby.js"></script>
 </body>
 </html>
