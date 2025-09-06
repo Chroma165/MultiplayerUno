@@ -196,3 +196,17 @@ button:hover, button:focus {
     transform: translateY(-2px) scale(1.03);
     outline: none;
 }
+
+#playerListContainer button {
+    display: block;
+    margin: 24px auto 0 auto;
+}
+
+button:disabled {
+    background: #888 !important;
+    color: #ccc !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+    transform: none;
+}

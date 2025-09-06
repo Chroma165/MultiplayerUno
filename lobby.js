@@ -17,6 +17,14 @@ socket.emit('getRoomInfo', roomCode, (r) => {
     // Only host can edit
     const isHost = user && user.type === 'host';
     renderRules(r.rules, isHost);
+
+    const startButton = document.createElement('button');
+    const playerListContainer = document.querySelector('#playerListContainer');
+
+    startButton.innerHTML = isHost ? 'Start Game' : 'Waiting for Host';
+    startButton.disabled = !isHost;
+    playerListContainer.appendChild(startButton);
+
 });
 
 socket.emit('joinSocketRoom', roomCode);
