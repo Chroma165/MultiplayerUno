@@ -210,3 +210,19 @@ button:disabled {
     box-shadow: none;
     transform: none;
 }
+
+#copyLobbyCode {
+    cursor:pointer;
+    margin-left:8px;
+    vertical-align:middle;
+}
+
+#copyLobbyCode:hover {
+    color: #4f8cff;
+    transition: color 0.2s;
+}
+
+#lobbyCodeContainer {
+    display: inline-flex;
+    align-items: center;
+}

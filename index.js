@@ -77,6 +77,10 @@ io.on('connection', (socket) => {
             io.to(roomCode).emit('rulesUpdated', room.rules);
         }
     });
+
+    socket.on('disconnect', () => {
+        console.log('A user disconnected');
+    });
     
 });
 

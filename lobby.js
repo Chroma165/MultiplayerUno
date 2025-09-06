@@ -14,20 +14,28 @@ socket.emit('getRoomInfo', roomCode, (r) => {
     renderPlayerList(r.players);
     room = r;
     document.querySelector('#lobbyCode').innerHTML = room.code;
+    const copyBtn = document.getElementById('copyLobbyCode');
+    copyBtn.onclick = () => {
+        navigator.clipboard.writeText(room.code);
+        copyBtn.textContent = '✅';
+        setTimeout(() => { copyBtn.textContent = '📋'; }, 1200);
+    };
+
     // Only host can edit
     const isHost = user && user.type === 'host';
     renderRules(r.rules, isHost);
-
-    const startButton = document.createElement('button');
-    const playerListContainer = document.querySelector('#playerListContainer');
-
-    startButton.innerHTML = isHost ? 'Start Game' : 'Waiting for Host';
-    startButton.disabled = !isHost;
-    playerListContainer.appendChild(startButton);
-
 });
 
 socket.emit('joinSocketRoom', roomCode);
+
+const isHost = user && user.type === 'host';
+
+const startButton = document.createElement('button');
+const playerListContainer = document.querySelector('#playerListContainer');
+
+startButton.innerHTML = isHost ? 'Start Game' : 'Waiting for Host';
+startButton.disabled = !isHost;
+playerListContainer.appendChild(startButton);
 
 function renderPlayerList(players) {
     const playerList = document.querySelector('#playerList');
