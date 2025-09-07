@@ -117,6 +117,12 @@ socket.on('rulesUpdated', (rules) => {
     // Only host can edit
     const isHost = user && user.type === 'host';
     renderRules(rules, isHost);
+    if (isHost) {
+        const saveBtn = document.querySelector('.save-rules-btn');
+        saveBtn.textContent = 'Rules saved!'
+        setTimeout(() => { saveBtn.textContent = 'Save Rules'; }, 1200);
+    }
+    
 });
 
 socket.on('newPlayer', (user) => {
