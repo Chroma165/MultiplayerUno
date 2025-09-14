@@ -1,48 +1,45 @@
 const socket = io();
 
 const user = JSON.parse(sessionStorage.getItem('user'));
-const roomCode = user.roomCode;
 const rulesContainer = document.querySelector('#rulesContainer');
 const isHost = user && user.type === 'host';
 
 let room;
 
-socket.emit('getRoomInfo', roomCode, (r) => {
-    if (!r) {
-        window.location.href = 'error.html';
-        return;
-    }
-    renderPlayerList(r.players);
-    room = r;
-    document.querySelector('#lobbyCode').innerHTML = room.code;
-    const copyBtn = document.getElementById('copyLobbyCode');
-    copyBtn.onclick = () => {
-        navigator.clipboard.writeText(room.code);
-        copyBtn.textContent = '✅';
-        setTimeout(() => { copyBtn.textContent = '📋'; }, 1200);
-    };
+socket.emit('joinSocketRoom', user);
 
-    // Only host can edit
-    const isHost = user && user.type === 'host';
-    renderRules(r.rules, isHost);
-    const startButton = document.createElement('button');
-    const playerListContainer = document.querySelector('#playerListContainer');
+updateRoomInfo();
+
+function updateRoomInfo() {
+    socket.emit('getRoomInfo', (r) => {
+        console.log(r);
+        if (!r) {
+            window.location.href = 'error.html';
+            return;
+        }
+        renderPlayerList(r.players);
+        room = r;
+        document.querySelector('#lobbyCode').innerHTML = room.code;
+        const copyBtn = document.getElementById('copyLobbyCode');
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(room.code);
+            copyBtn.textContent = '✅';
+            setTimeout(() => { copyBtn.textContent = '📋'; }, 1200);
+        };
     
-    startButton.innerHTML = isHost ? 'Start Game' : room.isIngame ? 'Wait for game to end' : 'Waiting for host';
-    startButton.disabled = !isHost;
-    playerListContainer.appendChild(startButton);
-    if (isHost) {
-    startButton.onclick = () => {
-        socket.emit('startGame', room.code);
-    };
+        // Only host can edit
+        const isHost = user && user.type === 'host';
+        renderRules(r.rules, isHost);
+        const startButton = document.querySelector('#startButton');
+        const playerListContainer = document.querySelector('#playerListContainer');
+        
+        startButton.innerHTML = isHost ? 'Start Game' : room.isIngame ? 'Wait for game to end' : 'Waiting for host';
+        startButton.disabled = !isHost;
+
+        startButton.onclick = isHost ? () => {socket.emit('startGame', room.code)} : {};
+        
+    });
 }
-});
-
-socket.emit('joinSocketRoom', roomCode, user);
-
-
-
-
 
 function renderPlayerList(players) {
     const playerList = document.querySelector('#playerList');
@@ -98,7 +95,7 @@ function renderRules(rules, editable) {
             form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
                 newRules[cb.dataset.rule] = cb.checked;
             });
-            socket.emit('updateRules', room.code, newRules);
+            socket.emit('updateRules', newRules);
         };
         form.appendChild(saveBtn);
     }
@@ -106,7 +103,6 @@ function renderRules(rules, editable) {
     rulesContainer.appendChild(form);
 }
 
-// Add human-readable descriptions for each rule
 const ruleDescriptions = {
     blackOnBlack: 'Allow black on black',
     d2ond2: 'Allow +2 on +2',
@@ -132,12 +128,20 @@ socket.on('rulesUpdated', (rules) => {
     
 });
 
-socket.on('newPlayer', (user) => {
-    room.players.push(user);
-    renderPlayerList(room.players);
+socket.on('newPlayer', () => {
+    updateRoomInfo();
 });
 
 socket.on('gameStarted', () => {
-    sessionStorage.setItem('rules', JSON.stringify(room.rules));
     window.location.href = `game?room=${room.code}`;
+});
+
+socket.on('userDisconnected', (user) => {
+    if (user.type === 'host') {
+        sessionStorage.removeItem('user');
+        alert('The host disconnected');
+        window.location.href = '/';
+    } else {
+        updateRoomInfo();
+    }
 });

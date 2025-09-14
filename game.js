@@ -1,14 +1,15 @@
 const socket = io();
 
 const user = JSON.parse(sessionStorage.getItem('user'));
-const roomCode = sessionStorage.getItem('roomCode');
 
 let room;
 
 const hand = [];
 const oppHands = [];
 
-socket.emit('getRoomInfo', roomCode, (r) => {
+socket.emit('joinSocketRoom', user);
+
+socket.emit('getRoomInfo', (r) => {
     if (!r) {
         window.location.href = 'error.html';
         return;
@@ -16,7 +17,6 @@ socket.emit('getRoomInfo', roomCode, (r) => {
     room = r;
 });
 
-socket.emit('joinSocketRoom', roomCode);
 
 const screen = document.querySelector('#screen');
 const ctx = screen.getContext('2d');

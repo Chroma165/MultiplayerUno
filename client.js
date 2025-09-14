@@ -5,11 +5,9 @@ const joinRoom = document.querySelector('#joinRoom');
 const roomCodeInput = document.querySelector('#roomCodeInput');
 const userNameInput = document.querySelector('#userNameInput');
 
-if (JSON.parse(sessionStorage.getItem('user'))){
-    userNameInput.value = JSON.parse(sessionStorage.getItem('user')).name;
-}
-
 let user;
+
+sessionStorage.removeItem('user');
 
 createRoom.addEventListener('click', () => {
     if (userNameInput.value.charAt(0) == ' ') {

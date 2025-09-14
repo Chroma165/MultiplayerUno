@@ -14,7 +14,7 @@ app.get('/', async (request, response) => {
     response.send( await readFile('./home.html', 'utf8') );
 });
 
-app.get('/lobby/', async (request, response) => {
+app.get('/lobby', async (request, response) => {
     if (activeRoomCodes.has(request.query.room)) {
         response.send( await readFile('./lobby.html', 'utf8') );
     }
@@ -23,7 +23,7 @@ app.get('/lobby/', async (request, response) => {
     }
 });
 
-app.get('/game/', async (request, response) => {
+app.get('/game', async (request, response) => {
     if (activeRoomCodes.has(request.query.room)) {
         response.send( await readFile('./game.html', 'utf8') );
     }
@@ -71,39 +71,47 @@ io.on('connection', (socket) => {
         } else if (room.players.some(p => p.name && user.name && p.name === user.name)) {
             socket.emit('usernameTaken');
         } else {
+            user.type = 'player';
             room.players.push(user);
             users.push(user);
             socket.emit('moveToRoom', { code: room.code });
-            io.to(room.code).emit('newPlayer', user);
+            io.to(room.code).emit('newPlayer');
         }
     });
 
-    socket.on('joinSocketRoom', (roomCode, user) => {
+    socket.on('joinSocketRoom', (user) => {
         socket.user = user;
-        socket.join(roomCode);
+        socket.join(user.roomCode);
     });
 
-    socket.on('getRoomInfo', (roomCode, callback) => {
-        const room = rooms.find(r => r.code === roomCode);
+    socket.on('getRoomInfo', (callback) => {
+        const user = socket.user;
+        const room = rooms.find(r => r.code === user.roomCode);
         callback(room);
     });
 
-    socket.on('updateRules', (roomCode, newRules) => {
-        const room = rooms.find(r => r.code === roomCode);
-        if (room) {
+    socket.on('updateRules', (newRules) => {
+        const user = socket.user;
+        const room = rooms.find(r => r.code === user.roomCode);
+        if (room && socket.user.type === 'host') {
             room.rules = { ...room.rules, ...newRules };
-            io.to(roomCode).emit('rulesUpdated', room.rules);
+            io.to(user.roomCode).emit('rulesUpdated', room.rules);
         }
     });
 
     socket.on('startGame', (roomCode) => {
-        io.to(roomCode).emit('gameStarted');
-        
+        const room = rooms.find(r => r.code === roomCode);
+        if (socket.user.type === 'host') {
+            room.isIngame = true;
+            shuffleArray(room.deck);
+            io.to(roomCode).emit('gameStarted');
+        }
     });
 
     socket.on('disconnect', () => {
         if (socket.user){
             console.log(`User ${socket.user.name} disconnected`);
+
         } else {
             console.log('A user disconnected');
         }
@@ -150,4 +158,11 @@ function generateRoomCode(length) {
     activeRoomCodes.add(code);
     console.log(code);
     return code;
+}
+
+const shuffleArray = array => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
 }
