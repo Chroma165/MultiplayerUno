@@ -226,3 +226,10 @@ button:disabled {
     display: inline-flex;
     align-items: center;
 }
+
+#screen {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+}

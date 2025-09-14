@@ -6,7 +6,7 @@ const roomCodeInput = document.querySelector('#roomCodeInput');
 const userNameInput = document.querySelector('#userNameInput');
 
 if (JSON.parse(sessionStorage.getItem('user'))){
-    userNameInput.value = JSON.parse(sessionStorage.getItem('user')).userName;
+    userNameInput.value = JSON.parse(sessionStorage.getItem('user')).name;
 }
 
 let user;
@@ -17,7 +17,7 @@ createRoom.addEventListener('click', () => {
     }
     else if (userNameInput.value) {
         user = {
-            userName : userNameInput.value,
+            name : userNameInput.value,
             type : 'host',
         }
         sessionStorage.setItem('user', JSON.stringify(user));
@@ -40,7 +40,7 @@ joinRoom.addEventListener('click', () => {
     }
     else {
         user = {
-            userName : userNameInput.value,
+            name : userNameInput.value,
             type : 'player',
         }
         sessionStorage.setItem('user', JSON.stringify(user));
@@ -49,7 +49,8 @@ joinRoom.addEventListener('click', () => {
 });
 
 socket.on('moveToRoom', (room) => {
-    sessionStorage.setItem('roomCode', room.code);
+    user.roomCode = room.code;
+    sessionStorage.setItem('user', JSON.stringify(user));
     window.location.href = `lobby?room=${room.code}`;
 });
 
@@ -59,4 +60,8 @@ socket.on('roomFull', () => {
 
 socket.on('roomNotFound', () => {
     alert("This room doesn't exist");
+});
+
+socket.on('usernameTaken', () => {
+    alert('This username is already taken');
 });

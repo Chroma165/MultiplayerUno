@@ -1,8 +1,9 @@
 const socket = io();
 
 const user = JSON.parse(sessionStorage.getItem('user'));
-const roomCode = sessionStorage.getItem('roomCode');
+const roomCode = user.roomCode;
 const rulesContainer = document.querySelector('#rulesContainer');
+const isHost = user && user.type === 'host';
 
 let room;
 
@@ -24,25 +25,31 @@ socket.emit('getRoomInfo', roomCode, (r) => {
     // Only host can edit
     const isHost = user && user.type === 'host';
     renderRules(r.rules, isHost);
+    const startButton = document.createElement('button');
+    const playerListContainer = document.querySelector('#playerListContainer');
+    
+    startButton.innerHTML = isHost ? 'Start Game' : room.isIngame ? 'Wait for game to end' : 'Waiting for host';
+    startButton.disabled = !isHost;
+    playerListContainer.appendChild(startButton);
+    if (isHost) {
+    startButton.onclick = () => {
+        socket.emit('startGame', room.code);
+    };
+}
 });
 
-socket.emit('joinSocketRoom', roomCode);
+socket.emit('joinSocketRoom', roomCode, user);
 
-const isHost = user && user.type === 'host';
 
-const startButton = document.createElement('button');
-const playerListContainer = document.querySelector('#playerListContainer');
 
-startButton.innerHTML = isHost ? 'Start Game' : 'Waiting for Host';
-startButton.disabled = !isHost;
-playerListContainer.appendChild(startButton);
+
 
 function renderPlayerList(players) {
     const playerList = document.querySelector('#playerList');
     playerList.innerHTML = '';
     players.forEach(player => {
         const li = document.createElement('li');
-        li.textContent = (player.userName || player) + ` (${player.type})`;
+        li.textContent = (player.name || player) + ` (${player.type})`;
         playerList.appendChild(li);
     });
 }
@@ -106,7 +113,7 @@ const ruleDescriptions = {
     d4ond4: 'Allow +4 on +4',
     d2ond4: 'Allow +2 on +4',
     d4ond2: 'Allow +4 on +2',
-    throwInBetween: 'Allow throw-in between',
+    throwInBetween: 'Allow throw in-between',
     playDouble: 'Allow playing doubles',
     countDouble: 'Count both cards when playing doubles',
     playAfterDraw: 'Allow playing after drawing',
@@ -128,4 +135,9 @@ socket.on('rulesUpdated', (rules) => {
 socket.on('newPlayer', (user) => {
     room.players.push(user);
     renderPlayerList(room.players);
+});
+
+socket.on('gameStarted', () => {
+    sessionStorage.setItem('rules', JSON.stringify(room.rules));
+    window.location.href = `game?room=${room.code}`;
 });

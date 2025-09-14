@@ -23,9 +23,26 @@ app.get('/lobby/', async (request, response) => {
     }
 });
 
+app.get('/game/', async (request, response) => {
+    if (activeRoomCodes.has(request.query.room)) {
+        response.send( await readFile('./game.html', 'utf8') );
+    }
+    else {
+        response.send( await readFile('./error.html', 'utf8') );
+    }
+});
+
 const io = require('socket.io')(appServer, {
     cors : { origin : '*' }
 });
+
+const standartDeck = [
+    'r0', 'r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 'rs', 'rr', 'r+2', 'r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 'rs', 'rr', 'r+2',
+    'b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'b9', 'bs', 'br', 'b+2', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'b9', 'bs', 'br', 'b+2',
+    'g0', 'g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8', 'g9', 'gs', 'gr', 'g+2', 'g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8', 'g9', 'gs', 'gr', 'g+2',
+    'y0', 'y1', 'y2', 'y3', 'y4', 'y5', 'y6', 'y7', 'y8', 'y9', 'ys', 'yr', 'y+2', 'y1', 'y2', 'y3', 'y4', 'y5', 'y6', 'y7', 'y8', 'y9', 'ys', 'yr', 'y+2',
+    'bwild', 'bwild', 'bwild', 'bwild', 'b+4', 'b+4', 'b+4', 'b+4'
+];
 
 const users = [];
 const rooms = [];
@@ -42,7 +59,6 @@ io.on('connection', (socket) => {
         const room = generateRoom(user, roomCodeLength);
         users.push(user);
         rooms.push(room);
-        socket.join(room.code);
         socket.emit('moveToRoom', { code: room.code });
     });
 
@@ -52,6 +68,8 @@ io.on('connection', (socket) => {
             socket.emit('roomNotFound');
         } else if (room.players.length >= room.maxPlayers) {
             socket.emit('roomFull');
+        } else if (room.players.some(p => p.name && user.name && p.name === user.name)) {
+            socket.emit('usernameTaken');
         } else {
             room.players.push(user);
             users.push(user);
@@ -60,7 +78,8 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('joinSocketRoom', (roomCode) => {
+    socket.on('joinSocketRoom', (roomCode, user) => {
+        socket.user = user;
         socket.join(roomCode);
     });
 
@@ -73,13 +92,21 @@ io.on('connection', (socket) => {
         const room = rooms.find(r => r.code === roomCode);
         if (room) {
             room.rules = { ...room.rules, ...newRules };
-            // Optionally, broadcast updated rules to all clients in the room
             io.to(roomCode).emit('rulesUpdated', room.rules);
         }
     });
 
+    socket.on('startGame', (roomCode) => {
+        io.to(roomCode).emit('gameStarted');
+        
+    });
+
     socket.on('disconnect', () => {
-        console.log('A user disconnected');
+        if (socket.user){
+            console.log(`User ${socket.user.name} disconnected`);
+        } else {
+            console.log('A user disconnected');
+        }
     });
     
 });
@@ -87,9 +114,11 @@ io.on('connection', (socket) => {
 function generateRoom(host, codeLength) {
     const roomCode = generateRoomCode(codeLength);;
     const room = {
+        deck : standartDeck,
         players : [host],
         maxPlayers : 8,
         code : roomCode,
+        isIngame : false,
         rules : {
             blackOnBlack : true, // Darf man Schwarz auf Scharz legen?
             d2ond2 : true, // Darf man eine +2 auf eine +2 legen?
