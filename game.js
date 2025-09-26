@@ -4,7 +4,7 @@ const user = JSON.parse(sessionStorage.getItem('user'));
 
 let room;
 
-const hand = ['r0', 'r1', 'r2', 'r3'];
+const hand = ['y1', 'b+2', 'swild', 'rr', 's+4'];
 const oppHands = [];
 
 socket.emit('joinSocketRoom', user);
@@ -90,11 +90,10 @@ function drawFrame (){
     resizeCanvas();
     ctx.clearRect(0, 0, screen.width, screen.height);
     ctx.drawImage(images.red['2'], 0, 0, 48*scaleFactor, 64*scaleFactor);
-    drawHand();
+    drawHand(hand);
 }
 
-function drawHand () {
-    let hand = ['y0', 'b+2', 'swild', 's+4', 'br'];
+function drawHand (hand) {
     const step = 20*scaleFactor;
     const handWidth = 48*scaleFactor+(hand.length-1)*step;
     const startX = Math.round((screen.width-handWidth)/2);
