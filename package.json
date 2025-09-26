@@ -1,14 +1,14 @@
 {
   "name": "multiplayeruno",
   "version": "1.0.0",
-  "description": "",
+  "description": "A multiplayer browser game to play Uno with your friends (in case you have friends)",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ."
   },
   "keywords": [],
-  "author": "",
+  "author": "Chroma165",
   "license": "ISC",
   "dependencies": {
     "express": "^5.1.0",
