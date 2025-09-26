@@ -4,7 +4,7 @@ const user = JSON.parse(sessionStorage.getItem('user'));
 
 let room;
 
-const hand = [];
+const hand = ['r0', 'r1', 'r2', 'r3'];
 const oppHands = [];
 
 socket.emit('joinSocketRoom', user);
@@ -90,11 +90,43 @@ function drawFrame (){
     resizeCanvas();
     ctx.clearRect(0, 0, screen.width, screen.height);
     ctx.drawImage(images.red['2'], 0, 0, 48*scaleFactor, 64*scaleFactor);
+    drawHand();
+}
+
+function drawHand () {
+    let hand = ['y0', 'b+2', 'swild', 's+4', 'br'];
+    const step = 20*scaleFactor;
+    const handWidth = 48*scaleFactor+(hand.length-1)*step;
+    const startX = Math.round((screen.width-handWidth)/2);
+    const y = screen.height-70*scaleFactor;
+
+    let x = startX;
+    hand.forEach(card => {
+        let color = card[0];
+        let value = card.slice(1);
+        switch(color) {
+            case 'r':
+                color = 'red';
+                break;
+            case 'b':
+                color = 'blue';
+                break;
+            case 'g':
+                color = 'green';
+                break;
+            case 'y':
+                color = 'yellow';
+                break;
+            case 's':
+                color = 'black';
+        }
+        ctx.drawImage(images[color][value], x, y, 48*scaleFactor, 64*scaleFactor);
+        x+=step;
+    });
+
 }
 
 
-
 // TODO
-//function drawHand (hand) {}
 //function drawOppHands () {}
 //function drawPiles () {}
