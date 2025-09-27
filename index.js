@@ -44,7 +44,7 @@ const standartDeck = [
     'swild', 'swild', 'swild', 'swild', 's+4', 's+4', 's+4', 's+4'
 ];
 
-const users = [];
+//const users = [];
 const rooms = [];
 const activeRoomCodes = new Set();
 const roomCodeLength = 6;
@@ -57,7 +57,7 @@ io.on('connection', (socket) => {
     socket.on('createRoom', (user) => {
         console.log('creating Room');
         const room = generateRoom(user, roomCodeLength);
-        users.push(user);
+        //users.push(user);
         rooms.push(room);
         socket.emit('moveToRoom', { code: room.code });
     });
@@ -73,7 +73,7 @@ io.on('connection', (socket) => {
         } else {
             user.type = 'player';
             room.players.push(user);
-            users.push(user);
+            //users.push(user);
             socket.emit('moveToRoom', { code: room.code });
             io.to(room.code).emit('newPlayer');
         }
@@ -108,6 +108,26 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('gameConnected', () => {
+        const user = socket.user;
+        const room = rooms.find(r => r.code === user.roomCode);
+        room.connectedPlayers++;
+        if (room.connectedPlayers == room.players.length) {
+            shuffleArray(room.deck);
+            io.to(user.roomCode).emit('roomReady');
+            for(let i=0; i<room.players.length; i++) {
+                room.players[i].hand = room.deck.splice(0, 7);
+            }
+        }
+    });
+
+    socket.on('getHand', (callback) => {
+        const user = socket.user;
+        const room = rooms.find(r => r.code === user.roomCode);
+        const userHand = room.players.find(p => p.name === user.name).hand;
+        callback(userHand);
+    });
+
     socket.on('disconnect', () => {
         if (socket.user){
             console.log(`User ${socket.user.name} disconnected`);
@@ -127,6 +147,7 @@ function generateRoom(host, codeLength) {
         maxPlayers : 8,
         code : roomCode,
         isIngame : false,
+        connectedPlayers : 0,
         rules : {
             blackOnBlack : true, // Darf man Schwarz auf Scharz legen?
             d2ond2 : true, // Darf man eine +2 auf eine +2 legen?

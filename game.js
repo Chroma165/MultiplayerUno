@@ -4,8 +4,10 @@ const user = JSON.parse(sessionStorage.getItem('user'));
 
 let room;
 
-const hand = ['y1', 'b+2', 'swild', 'rr', 's+4'];
+let hand = [];
 const oppHands = [];
+
+let imagesLoaded = false;
 
 socket.emit('joinSocketRoom', user);
 
@@ -15,6 +17,19 @@ socket.emit('getRoomInfo', (r) => {
         return;
     }
     room = r;
+});
+
+socket.emit('gameConnected');
+
+socket.on('roomReady', () => {
+    socket.emit('getHand', (h) => {
+        if (h) {
+            hand = h;
+        }
+        if (imagesLoaded) {
+            drawFrame();
+        }
+    });
 });
 
 
@@ -27,7 +42,7 @@ resizeCanvas();
 
 
 const COLORS = ['red', 'green', 'blue', 'yellow'];
-const VALUES = ['0','1','2','3','4','5','6','7','8','9','r','s','+2'];
+const VALUES = ['0','1','2','3','4','5','6','7','8','9','r','s','+2']; // Vanilleeis
 const BLACK_VALUES = ['wild', '+4'];
 
 function getImageManifest() {
@@ -76,6 +91,7 @@ let images = {};
 
 loadImages(manifest).then(loadedImages => {
     images = loadedImages;
+    imagesLoaded = true;
     window.addEventListener('resize', drawFrame);
     drawFrame();
 });
@@ -89,7 +105,6 @@ function resizeCanvas () {
 function drawFrame (){
     resizeCanvas();
     ctx.clearRect(0, 0, screen.width, screen.height);
-    ctx.drawImage(images.red['2'], 0, 0, 48*scaleFactor, 64*scaleFactor);
     drawHand(hand);
 }
 
