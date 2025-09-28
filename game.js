@@ -17,6 +17,17 @@ socket.emit('getRoomInfo', (r) => {
         return;
     }
     room = r;
+    console.log(r);
+    if (r.ready) {
+        socket.emit('getHand', (h) => {
+        if (h) {
+            hand = h;
+        }
+        if (imagesLoaded) {
+            drawFrame();
+        }
+    });
+    }
 });
 
 socket.emit('gameConnected');

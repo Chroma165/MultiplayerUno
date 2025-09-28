@@ -87,7 +87,13 @@ io.on('connection', (socket) => {
     socket.on('getRoomInfo', (callback) => {
         const user = socket.user;
         const room = rooms.find(r => r.code === user.roomCode);
-        callback(room);
+        const { deck, ...roomWithoutDeck } = room;
+
+        const safeRoom = {
+            ...roomWithoutDeck,
+            players: room.players.map(({ hand, ...rest }) => rest)
+        };
+        callback(safeRoom);
     });
 
     socket.on('updateRules', (newRules) => {
@@ -112,12 +118,13 @@ io.on('connection', (socket) => {
         const user = socket.user;
         const room = rooms.find(r => r.code === user.roomCode);
         room.connectedPlayers++;
-        if (room.connectedPlayers == room.players.length) {
+        if (room.connectedPlayers == room.players.length && !room.ready) {
+            room.ready = true;
             shuffleArray(room.deck);
-            io.to(user.roomCode).emit('roomReady');
             for(let i=0; i<room.players.length; i++) {
                 room.players[i].hand = room.deck.splice(0, 7);
             }
+            io.to(user.roomCode).emit('roomReady');
         }
     });
 
@@ -125,6 +132,7 @@ io.on('connection', (socket) => {
         const user = socket.user;
         const room = rooms.find(r => r.code === user.roomCode);
         const userHand = room.players.find(p => p.name === user.name).hand;
+        console.log(`${user.name}'s hand: ${userHand}`);
         callback(userHand);
     });
 
@@ -148,6 +156,7 @@ function generateRoom(host, codeLength) {
         code : roomCode,
         isIngame : false,
         connectedPlayers : 0,
+        ready : false,
         rules : {
             blackOnBlack : true, // Darf man Schwarz auf Scharz legen?
             d2ond2 : true, // Darf man eine +2 auf eine +2 legen?
