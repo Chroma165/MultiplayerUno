@@ -117,6 +117,7 @@ function drawFrame (){
     resizeCanvas();
     ctx.clearRect(0, 0, screen.width, screen.height);
     drawHand(hand);
+    drawOppHands(oppHands);
 }
 
 function drawHand (hand) {
@@ -151,7 +152,54 @@ function drawHand (hand) {
 
 }
 
+function drawOppHands (oppHands) {
+    let sideNum;
+    if (oppHands.length == 0) {
+        sideNum = 0;
+    } else if (oppHands.length >= 1 && oppHands.length <= room.maxPlayers-2) {
+        sideNum = Math.floor((oppHands.length-1)/2);
+        console.log();
+    } else {
+        sideNum = Math.floor((room.maxPlayers-3)/2);
+    }
+
+    let left = [];
+    let right = [];
+    let top = [];
+    if (sideNum != 0){
+        left = oppHands.slice(0, sideNum);
+        right = oppHands.slice(-sideNum);
+        top = oppHands.slice(sideNum, -sideNum);
+    } else {
+        top = oppHands.slice();
+    }
+
+    // left
+    const distY = screen.height/(left.length+1);
+    for(let i = 0; i < left.length; i++) {
+        for(let j = 0; j < left[i]; j++) {
+            ctx.drawImage(images.backside, j*16*scaleFactor, distY-32*scaleFactor+i*distY, 48*scaleFactor, 64*scaleFactor);
+        }
+    }
+
+    //right
+    for(let i = 0; i < right.length; i++) {        
+        for(let j = 0; j < right[i]; j++) {
+            ctx.drawImage(images.backside, screen.width-(48*scaleFactor+(j*16*scaleFactor)), distY-32*scaleFactor+i*distY, 48*scaleFactor, 64*scaleFactor);
+        }
+    }
+
+    //top
+    const distX = screen.width/(top.length+1);
+    for(let i = 0; i < top.length; i++) {
+        const handCenter = distX*(i+1);
+        const handWidth = 48*scaleFactor+(top[i]-1)*16*scaleFactor;
+        const beginning = handCenter-handWidth/2;
+        for(let j = 0; j < top[i]; j++) {
+            ctx.drawImage(images.backside, beginning+j*16*scaleFactor, 6*scaleFactor, 48*scaleFactor, 64*scaleFactor);
+        }
+    }
+}
 
 // TODO
-//function drawOppHands () {}
 //function drawPiles () {}
